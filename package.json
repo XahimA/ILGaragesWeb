@@ -1,0 +1,11 @@
+{
+  "name": "garage-qna-form",
+  "version": "1.0.0",
+  "description": "Garage QnA Form Application",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3"
+  }
+}
