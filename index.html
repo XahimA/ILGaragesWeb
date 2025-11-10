@@ -797,11 +797,31 @@ const AZURE_CONFIG = {
     };
 
     // Azure Upload Functions
-    function generateCosmosAuthToken(verb, resourceType, resourceLink, key, msDate) {
-      const stringToSign = `${verb.toLowerCase()}\n${resourceType.toLowerCase()}\n${resourceLink}\n${msDate.toLowerCase()}\n\n`;
-      const signature = btoa(stringToSign);
-      return `type=master&ver=1.0&sig=${encodeURIComponent(signature)}`;
-    }
+function generateCosmosAuthToken(verb, resourceType, resourceLink, key, date) {
+    const CryptoJS = window.CryptoJS; // make sure CryptoJS is loaded
+
+    // Construct the string to sign (all lowercase)
+    const text = (verb || '').toLowerCase() + '\n' +
+                 (resourceType || '').toLowerCase() + '\n' +
+                 (resourceLink || '') + '\n' +
+                 (date || '').toLowerCase() + '\n\n';
+
+    // Decode the base64 master key
+    const keyBytes = CryptoJS.enc.Base64.parse(key);
+
+    // Sign the string using HMAC-SHA256
+    const signature = CryptoJS.HmacSHA256(text, keyBytes);
+
+    // Convert to Base64
+    const base64Sig = CryptoJS.enc.Base64.stringify(signature);
+
+    // Build authorization token
+    const auth = encodeURIComponent(
+        `type=master&ver=1.0&sig=${base64Sig}`
+    );
+
+    return auth;
+}
 
     function createSharedKeyAuth(method, blobName, contentLength, msDate) {
       const stringToSign = `${method}\n\n\n${contentLength}\n\nimage/jpeg\n\n\n\n\n\n\nx-ms-blob-type:BlockBlob\nx-ms-date:${msDate}\nx-ms-version:2020-04-08\n/${AZURE_CONFIG.STORAGE_ACCOUNT}/${AZURE_CONFIG.CONTAINER_NAME}/${blobName}`;
@@ -869,6 +889,56 @@ async function uploadImageToBlob(file, index) {
     // ✅ Enhanced Cosmos DB upload with better error handling
 async function uploadToCosmosDB(document) {
     try {
+        const cosmosUrl = `${AZURE_CONFIG.COSMOS_ENDPOINT}dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}/docs`;
+        const dateFormat = new Date().toUTCString();
+
+        // This must match the "resourceLink" part used in signature
+        const resourceLink = `dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}`;
+        
+        // Generate valid authorization token
+        const authToken = generateCosmosAuthToken(
+            'POST',
+            'docs',
+            resourceLink,
+            AZURE_CONFIG.COSMOS_KEY,
+            dateFormat
+        );
+
+        // Partition key — safe fallback
+        const partitionKeyValue = document.garageName || document.id || 'default';
+        const partitionKeyHeader = `["${partitionKeyValue}"]`;
+
+        // Add metadata
+        document._uploadMetadata = {
+            cosmosUploadTime: new Date().toISOString(),
+            version: '1.0',
+            source: 'web-form'
+        };
+
+        const response = await fetch(cosmosUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-ms-version': '2018-12-31',
+                'x-ms-date': dateFormat,
+                'x-ms-documentdb-partitionkey': partitionKeyHeader,
+                'Authorization': authToken
+            },
+            body: JSON.stringify(document)
+        });
+
+        if (response.status === 201) {
+            console.log('✅ Cosmos DB upload successful');
+            return true;
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Cosmos DB upload failed:', response.status, errorText);
+            throw new Error(`Cosmos DB: ${response.status} - ${errorText}`);
+        }
+    } catch (error) {
+        console.error('Cosmos DB upload error:', error);
+        throw error;
+    }    try {
         const cosmosUrl = `${AZURE_CONFIG.COSMOS_ENDPOINT}dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}/docs`;
         const dateFormat = new Date().toUTCString();
         const resourceLink = `dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}`;
