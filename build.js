@@ -1,13 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-// Read environment variables
 require('dotenv').config();
 
-// Read the HTML template
 const template = fs.readFileSync('index.html', 'utf8');
 
-// Replace placeholders with actual environment variables
 let output = template;
 
 const replacements = {
@@ -29,12 +26,10 @@ for (const [placeholder, value] of Object.entries(replacements)) {
   output = output.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
 }
 
-// Create dist directory if it doesn't exist
 if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist');
 }
 
-// Write the output file
 fs.writeFileSync('dist/index.html', output);
 
 console.log('✅ Build completed successfully!');
