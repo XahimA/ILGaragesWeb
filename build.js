@@ -31,5 +31,8 @@ if (!fs.existsSync('dist')) {
 }
 
 fs.writeFileSync('dist/index.html', output);
+// Copy styles.css to dist
+fs.copyFileSync('styles.css', path.join('dist', 'styles.css'));
+console.log('✅ Copied styles.css to dist/');
 
 console.log('✅ Build completed successfully!');
