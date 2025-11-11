@@ -6,464 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Garage QnA – By S&I</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <style>
-    :root{
-      --bg:#0e1116;
-      --glass: rgba(255,255,255,0.08);
-      --stroke: rgba(255,255,255,0.18);
-      --text:#eef2f7;
-      --muted:#9aa4b2;
-      --accent:#3ea6ff;
-      --ok:#18c37e;
-      --bad:#ff5d5d;
-      --warn:#ffb020;
-      --card-blur: 16px;
-      --radius:14px;
-    }
-    *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
-    html,body{height:100%; margin:0;}
-    body{
-      background:
-        radial-gradient(1200px 800px at 100% -20%, #153a63 0%, transparent 60%),
-        radial-gradient(1000px 700px at -10% 110%, #164a2d 0%, transparent 55%),
-        var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      font-family: -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      overflow-x:hidden;
-    }
-    .wrap{
-      max-width:1000px;
-      margin:0 auto;
-      padding: max(16px, env(safe-area-inset-top)) clamp(12px, 2.5vw, 24px) max(16px, env(safe-area-inset-bottom));
-    }
-    .glass{
-      background: var(--glass);
-      border:1px solid var(--stroke);
-      border-radius: var(--radius);
-      backdrop-filter: blur(var(--card-blur)) saturate(140%);
-      -webkit-backdrop-filter: blur(var(--card-blur)) saturate(140%);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    }
-    header.glass{
-      padding:16px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      position:sticky;
-      top: max(8px, env(safe-area-inset-top));
-      z-index:10;
-      margin-bottom:14px;
-    }
-    header h1{
-      margin:0;
-      font-size:18px;
-      font-weight:600;
-      letter-spacing:.3px;
-    }
-    .pill{
-      color:var(--accent);
-      font-weight:600;
-      font-size:12px;
-      border:1px solid var(--stroke);
-      padding:6px 10px;
-      border-radius:999px;
-      background: rgba(62,166,255,0.09);
-    }
-
-    .content{
-      display:grid;
-      gap:14px;
-    }
-
-    .card{
-      padding:16px 18px;
-    }
-    .page-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:16px;
-      padding-bottom:12px;
-      border-bottom:1px solid var(--stroke);
-    }
-    .page-title{
-      font-size:15px;
-      font-weight:600;
-      color:var(--text);
-    }
-    
-    h3{
-      font-size:14px;
-      font-weight:600;
-      color:var(--text);
-      margin:20px 0 12px;
-      padding-bottom:8px;
-      border-bottom:1px dashed rgba(255,255,255,0.12);
-    }
-    h3:first-of-type{margin-top:0}
-
-    .row{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .grid-2{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px}
-    .grid-3{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px}
-    @media (max-width:780px){
-      .grid-2,.grid-3{grid-template-columns: 1fr}
-    }
-
-    label{
-      display:block;
-      font-size:13px;
-      color:var(--muted);
-      margin:0 2px 6px;
-      font-weight:500;
-    }
-    .form-group{
-      margin-bottom:14px;
-    }
-    input[type="text"],
-    input[type="number"],
-    textarea,
-    select{
-      width:100%;
-      background: rgba(255,255,255,0.06);
-      color:var(--text);
-      border:1px solid var(--stroke);
-      border-radius:12px;
-      padding:12px 14px;
-      outline:none;
-      -webkit-appearance:none;
-      appearance:none;
-      font-size:15px;
-      font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    input::placeholder, textarea::placeholder{color:#9aa4b299}
-    input:focus, select:focus, textarea:focus{
-      border-color: var(--accent);
-      background: rgba(255,255,255,0.09);
-      box-shadow: 0 0 0 3px rgba(62,166,255,0.15);
-    }
-    select{
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239aa4b2' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 40px;
-    }
-    textarea{
-      resize: vertical;
-      min-height: 80px;
-      line-height:1.5;
-    }
-
-    .yn{
-      display:flex; 
-      gap:10px; 
-      align-items:center; 
-      flex-wrap:wrap;
-    }
-    .chip{
-      padding:10px 16px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,0.06);
-      color:var(--text);
-      font-size:14px;
-      cursor:pointer;
-      user-select:none;
-      transition: all 0.2s ease;
-      font-weight:500;
-    }
-    .chip:hover{
-      background: rgba(255,255,255,0.1);
-    }
-    .chip.ok{border-color: #1ea87466; background: #1ea8741a; color:#18c37e}
-    .chip.bad{border-color: #ff5d5d66; background: #ff5d5d1a; color:#ff5d5d}
-    .chip.active{
-      outline:2px solid var(--accent); 
-      outline-offset:2px;
-      background: rgba(62,166,255,0.15);
-    }
-
-    .question-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      border-bottom:1px dashed rgba(255,255,255,0.08);
-      padding:10px 0;
-    }
-    .question-row:last-child{border-bottom:none}
-    .question-label{
-      font-weight:500;
-      font-size:14px;
-      flex:1;
-    }
-
-    .toolbar{
-      display:flex; 
-      gap:10px; 
-      flex-wrap:wrap;
-    }
-    button{
-      background: linear-gradient(180deg, rgba(62,166,255,0.35), rgba(62,166,255,0.15));
-      color:var(--text);
-      border:1px solid var(--stroke);
-      padding:12px 18px;
-      border-radius:12px;
-      font-weight:600;
-      font-size:14px;
-      letter-spacing:.2px;
-      cursor:pointer;
-      transition: all 0.2s ease;
-      font-family: inherit;
-      min-height:44px;
-    }
-    button:hover{
-      background: linear-gradient(180deg, rgba(62,166,255,0.45), rgba(62,166,255,0.25));
-      transform: translateY(-1px);
-    }
-    button:active{
-      transform: scale(0.98);
-    }
-    button.secondary{
-      background: rgba(255,255,255,0.06);
-    }
-    button.secondary:hover{
-      background: rgba(255,255,255,0.1);
-    }
-    button.danger{
-      background: rgba(255,93,93,0.18);
-      border-color:#ff5d5d66;
-      color:#ff5d5d;
-    }
-    button.success{
-      background: linear-gradient(180deg, rgba(24,195,126,0.35), rgba(24,195,126,0.15));
-      color:#18c37e;
-    }
-    button.success:hover{
-      background: linear-gradient(180deg, rgba(24,195,126,0.45), rgba(24,195,126,0.25));
-    }
-
-    .hint{
-      font-size:12px; 
-      color:var(--muted); 
-      margin-top:8px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .images{
-      display:flex; 
-      flex-direction:column; 
-      gap:10px;
-    }
-    .imgItem{
-      display:flex; 
-      align-items:center; 
-      gap:12px;
-      border:1px solid var(--stroke); 
-      border-radius:12px; 
-      padding:10px;
-      background: rgba(255,255,255,0.05);
-      transition: all 0.2s ease;
-    }
-    .imgItem:hover{
-      background: rgba(255,255,255,0.08);
-    }
-    .thumb{
-      width:72px; 
-      height:72px; 
-      border-radius:10px; 
-      object-fit:cover; 
-      border:1px solid var(--stroke);
-      background:#0b0e13;
-    }
-    .grow{flex:1}
-    .muted{color:var(--muted)}
-    .ok{color:var(--ok)}
-    .bad{color:var(--bad)}
-    .warn{color:var(--warn)}
-
-    .image-upload-area{
-      border:2px dashed var(--stroke);
-      border-radius:12px;
-      padding:20px;
-      text-align:center;
-      background: rgba(255,255,255,0.03);
-      margin-bottom:12px;
-      transition: all 0.2s ease;
-    }
-    .image-upload-area:hover{
-      background: rgba(255,255,255,0.06);
-      border-color: var(--accent);
-    }
-    .upload-icon{
-      font-size:36px;
-      margin-bottom:8px;
-    }
-
-    .pages{
-      display:flex; 
-      gap:12px; 
-      justify-content:space-between; 
-      align-items:center; 
-      margin-top:20px;
-      padding-top:16px;
-      border-top:1px solid var(--stroke);
-    }
-    .steps{
-      display:flex; 
-      gap:8px;
-      align-items:center;
-    }
-    .dot{
-      width:10px; 
-      height:10px; 
-      border-radius:999px; 
-      background:#ffffff24; 
-      border:1px solid var(--stroke);
-      transition: all 0.3s ease;
-    }
-    .dot.active{
-      background:var(--accent);
-      box-shadow: 0 0 8px rgba(62,166,255,0.5);
-      width:24px;
-    }
-
-    dialog{
-      border:1px solid var(--stroke); 
-      border-radius:16px; 
-      background: rgba(23,27,34,0.98);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      color:var(--text);
-      padding:0; 
-      max-width: min(720px, 96vw);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    }
-    dialog::backdrop{
-      background: rgba(0,0,0,0.65); 
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-    }
-    .dlgHead{
-      padding:16px 18px; 
-      border-bottom:1px solid var(--stroke); 
-      display:flex; 
-      justify-content:space-between; 
-      align-items:center;
-    }
-    .dlgBody{
-      padding:16px 18px 20px;
-    }
-    .dlgTitle{
-      font-size:17px;
-      font-weight:600;
-    }
-    .map{
-      width:100%; 
-      height:min(420px, 70vh); 
-      border-radius:12px; 
-      border:1px solid var(--stroke);
-      overflow:hidden; 
-      background:#0b0e13;
-    }
-
-    .req::after{
-      content:" *"; 
-      color:#ff6b6b;
-    }
-    
-    .toast{
-      position:fixed; 
-      left:50%; 
-      transform:translateX(-50%);
-      bottom: max(20px, env(safe-area-inset-bottom)); 
-      z-index:100;
-      padding:12px 20px; 
-      border-radius:999px; 
-      border:1px solid var(--stroke);
-      background: rgba(14,17,22,0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      color:var(--text);
-      display:none;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      font-size:14px;
-      font-weight:500;
-      max-width:90vw;
-    }
-    
-    pre.json{
-      max-height:50vh; 
-      overflow:auto; 
-      background:#0b0e13; 
-      border:1px solid var(--stroke); 
-      border-radius:12px; 
-      padding:12px; 
-      color:#cfe4ff;
-      font-size:12px;
-      line-height:1.5;
-    }
-
-    .checkbox-group{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-    .checkbox-label{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border:1px solid var(--stroke);
-      border-radius:12px;
-      background: rgba(255,255,255,0.05);
-      cursor:pointer;
-      transition: all 0.2s ease;
-      font-size:14px;
-      user-select:none;
-    }
-    .checkbox-label:hover{
-      background: rgba(255,255,255,0.09);
-    }
-    .checkbox-label input[type="checkbox"]{
-      width:18px;
-      height:18px;
-      margin:0;
-      cursor:pointer;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 3px;
-      margin: 10px 0;
-      overflow: hidden;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 3px;
-      transition: width 0.3s ease;
-      width: 0%;
-    }
-
-    @media (max-width: 480px){
-      header h1{font-size:16px}
-      .pill{font-size:11px; padding:5px 8px}
-      button{padding:10px 14px; font-size:13px}
-    }
-  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="wrap">
@@ -473,14 +17,17 @@
     </header>
 
     <div class="content">
-      <!-- Page 1: Core + Infra -->
       <section id="page1" class="glass card">
         <div class="page-header">
           <div class="page-title">Page 1 • Basics & Infrastructure</div>
         </div>
 
+        <!-- Enhanced Image Upload Options -->
         <div class="toolbar" style="margin-bottom:16px">
-          <button id="btnAddImage">📷 Add Images</button>
+          <div class="upload-options">
+            <button id="btnTakePhoto">📷 Take Photo</button>
+            <button id="btnChooseFromGallery">🖼️ Choose from Gallery</button>
+          </div>
           <button class="secondary" id="btnSelectLocation">📍 Location</button>
         </div>
 
@@ -515,6 +62,60 @@
         <h3>Infrastructure Questions</h3>
         <div id="infrastructure_container"></div>
 
+        <!-- New Questionnaire: Painting Consumable -->
+        <h3>Painting Consumable</h3>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="masking_tape" name="painting_consumable">
+            Masking Tape
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="masking_paper" name="painting_consumable">
+            Masking Paper
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="plastic_primer" name="painting_consumable">
+            Plastic Primer
+          </label>
+        </div>
+
+        <!-- New Questionnaire: A/C Gas Machine -->
+        <h3>A/C Gas Machine</h3>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="ac_gas_machine" value="Only Recharge">
+            Only Recharge
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ac_gas_machine" value="Recharge & Recovery Both">
+            Recharge & Recovery Both
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ac_gas_machine" value="External vendor Tie up">
+            External vendor Tie up
+          </label>
+        </div>
+
+        <!-- New Questionnaire: Washing Equipment -->
+        <h3>Washing Equipment</h3>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="washing_equipment" value="Tie up with external vendor">
+            Tie up with external vendor
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="washing_equipment" value="Inhouse Equipment">
+            Inhouse Equipment
+          </label>
+        </div>
+
+        <!-- Camera Setting Challenge -->
+        <h3>Camera Setting Challenge</h3>
+        <div class="form-group">
+          <label>Any camera setting challenges faced?</label>
+          <textarea id="camera_challenge" placeholder="Describe any camera-related issues..." rows="3"></textarea>
+        </div>
+
         <h3>Images (Minimum 5 Required)</h3>
         <div class="image-upload-area">
           <div class="upload-icon">📸</div>
@@ -538,7 +139,6 @@
         </div>
       </section>
 
-      <!-- Page 2: Tools + Safety + Convenience -->
       <section id="page2" class="glass card" hidden>
         <div class="page-header">
           <div class="page-title">Page 2 • Tools & Safety</div>
@@ -662,7 +262,6 @@
         </div>
       </section>
 
-      <!-- Page 3: LR + Submit -->
       <section id="page3" class="glass card" hidden>
         <div class="page-header">
           <div class="page-title">Page 3 • LR Variables & Submit</div>
@@ -702,7 +301,6 @@
     </div>
   </div>
 
-  <!-- Location dialog -->
   <dialog id="mapDialog">
     <div class="dlgHead">
       <div class="dlgTitle">📍 Select Location</div>
@@ -718,7 +316,6 @@
     </div>
   </dialog>
 
-  <!-- Upload Progress dialog -->
   <dialog id="uploadDialog">
     <div class="dlgHead">
       <div class="dlgTitle">📤 Uploading to Azure...</div>
@@ -732,7 +329,6 @@
     </div>
   </dialog>
 
-  <!-- JSON dialog -->
   <dialog id="jsonDialog">
     <div class="dlgHead">
       <div class="dlgTitle">✅ Form Submitted Successfully</div>
@@ -750,13 +346,14 @@
 
   <div class="toast" id="toast"></div>
 
-  <input id="fileInput" type="file" accept="image/*" capture="environment" multiple hidden />
+  <!-- Multiple file inputs for different capture modes -->
+  <input id="cameraInput" type="file" accept="image/*" capture="environment" multiple hidden />
+  <input id="galleryInput" type="file" accept="image/*" multiple hidden />
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
   <script>
-    // Configuration
 const AZURE_CONFIG = {
   STORAGE_ACCOUNT: "${AZURE_STORAGE_ACCOUNT}",
   STORAGE_KEY: "${AZURE_STORAGE_KEY}",
@@ -767,853 +364,677 @@ const AZURE_CONFIG = {
   COSMOS_CONTAINER: "${COSMOS_CONTAINER}"
 };
 
-    const REQUIRED_MIN_IMAGES = 5;
-    
-    // State management
-    const state = {
-      images: [],
-      location: {lat:null, long:null, address:""},
-      page: 1,
-      isUploading: false
-    };
+const REQUIRED_MIN_IMAGES = 5;
 
-    // Utility functions
-    const $ = sel => document.querySelector(sel);
-    const el = (tag, props={}, ...children)=>{
-      const n = Object.assign(document.createElement(tag), props);
-      children.flat().forEach(c => n.append(c instanceof Node ? c : document.createTextNode(c)));
-      return n;
-    };
-    
-    const toast = (msg, type = 'info')=>{
-      const t = $('#toast');
-      t.textContent = msg;
-      t.style.display = 'block';
-      t.className = 'toast';
-      if (type === 'error') t.style.borderColor = 'var(--bad)';
-      else if (type === 'success') t.style.borderColor = 'var(--ok)';
-      else t.style.borderColor = 'var(--stroke)';
-      
-      clearTimeout(t._tid);
-      t._tid = setTimeout(()=> t.style.display='none', 3000);
-    };
+const state = {
+  images: [],
+  location: {lat:null, long:null, address:""},
+  page: 1,
+  isUploading: false
+};
 
-    // Azure Upload Functions
+const $ = sel => document.querySelector(sel);
+const el = (tag, props={}, ...children)=>{
+  const n = Object.assign(document.createElement(tag), props);
+  children.flat().forEach(c => n.append(c instanceof Node ? c : document.createTextNode(c)));
+  return n;
+};
+
+const toast = (msg, type = 'info')=>{
+  const t = $('#toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.className = 'toast';
+  if (type === 'error') t.style.borderColor = 'var(--bad)';
+  else if (type === 'success') t.style.borderColor = 'var(--ok)';
+  else t.style.borderColor = 'var(--stroke)';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=> t.style.display='none', 3000);
+};
+
 function generateCosmosAuthToken(verb, resourceType, resourceLink, key, date) {
-    const CryptoJS = window.CryptoJS; // make sure CryptoJS is loaded
-
-    // Construct the string to sign (all lowercase)
-    const text = (verb || '').toLowerCase() + '\n' +
-                 (resourceType || '').toLowerCase() + '\n' +
-                 (resourceLink || '') + '\n' +
-                 (date || '').toLowerCase() + '\n\n';
-
-    // Decode the base64 master key
-    const keyBytes = CryptoJS.enc.Base64.parse(key);
-
-    // Sign the string using HMAC-SHA256
-    const signature = CryptoJS.HmacSHA256(text, keyBytes);
-
-    // Convert to Base64
-    const base64Sig = CryptoJS.enc.Base64.stringify(signature);
-
-    // Build authorization token
-    const auth = encodeURIComponent(
-        `type=master&ver=1.0&sig=${base64Sig}`
-    );
-
-    return auth;
+  const CryptoJS = window.CryptoJS;
+  const text = (verb || '').toLowerCase() + '\n' +
+               (resourceType || '').toLowerCase() + '\n' +
+               (resourceLink || '') + '\n' +
+               (date || '').toLowerCase() + '\n\n';
+  const keyBytes = CryptoJS.enc.Base64.parse(key);
+  const signature = CryptoJS.HmacSHA256(text, keyBytes);
+  const base64Sig = CryptoJS.enc.Base64.stringify(signature);
+  const auth = encodeURIComponent(`type=master&ver=1.0&sig=${base64Sig}`);
+  return auth;
 }
 
-    function createSharedKeyAuth(method, blobName, contentLength, msDate) {
-      const stringToSign = `${method}\n\n\n${contentLength}\n\nimage/jpeg\n\n\n\n\n\n\nx-ms-blob-type:BlockBlob\nx-ms-date:${msDate}\nx-ms-version:2020-04-08\n/${AZURE_CONFIG.STORAGE_ACCOUNT}/${AZURE_CONFIG.CONTAINER_NAME}/${blobName}`;
-      const signature = btoa(stringToSign);
-      return `SharedKey ${AZURE_CONFIG.STORAGE_ACCOUNT}:${signature}`;
-    }
+function createSharedKeyAuth(method, blobName, contentLength, msDate) {
+  const stringToSign = `${method}\n\n\n${contentLength}\n\nimage/jpeg\n\n\n\n\n\n\nx-ms-blob-type:BlockBlob\nx-ms-date:${msDate}\nx-ms-version:2020-04-08\n/${AZURE_CONFIG.STORAGE_ACCOUNT}/${AZURE_CONFIG.CONTAINER_NAME}/${blobName}`;
+  const signature = btoa(stringToSign);
+  return `SharedKey ${AZURE_CONFIG.STORAGE_ACCOUNT}:${signature}`;
+}
 
-
-// Your SAS token - make sure it's valid and has write permissions
 const SAS_TOKEN = "sv=2024-11-04&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2026-11-09T15:52:35Z&st=2025-11-09T07:37:35Z&spr=https,http&sig=E7PNOOM5qOpWIQqcddkRWpxcsv%2B0Ss%2FXNO8fy6FU5gE%3D";
 
-// ✅ Generate SAS URL for blob upload
 function getBlobSasUrl(blobName) {
-    // URL encode the blob name to handle special characters
-    const encodedBlobName = encodeURIComponent(blobName).replace(/'/g, "%27");
-    return `https://${AZURE_CONFIG.STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_CONFIG.CONTAINER_NAME}/${encodedBlobName}?${SAS_TOKEN}`;
+  const encodedBlobName = encodeURIComponent(blobName).replace(/'/g, "%27");
+  return `https://${AZURE_CONFIG.STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_CONFIG.CONTAINER_NAME}/${encodedBlobName}?${SAS_TOKEN}`;
 }
-// ✅ Upload image to Azure Blob Storage with better error handling
+
 async function uploadImageToBlob(file, index) {
-    try {
-        // Generate unique blob name
-        const timestamp = Date.now();
-        const random = Math.random().toString(36).substring(2, 8);
-        const fileExtension = file.name.split('.').pop() || 'jpg';
-        const blobName = `garage_${timestamp}_${random}_${index}.${fileExtension}`;
-        
-        const sasUrl = getBlobSasUrl(blobName);
-        
-        console.log(`Uploading ${file.name} as ${blobName}`);
-        
-        // Convert file to blob for better handling
-        const blob = new Blob([file], { type: file.type || 'image/jpeg' });
-        
-        const response = await fetch(sasUrl, {
-            method: 'PUT',
-            headers: {
-                'x-ms-blob-type': 'BlockBlob',
-                'Content-Type': file.type || 'image/jpeg',
-                'x-ms-version': '2020-04-08',
-                'Content-Length': blob.size.toString()
-            },
-            body: blob
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'No error details');
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        if (response.status === 201) {
-            // Return the permanent blob URL (without SAS token)
-            return `https://${AZURE_CONFIG.STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_CONFIG.CONTAINER_NAME}/${blobName}`;
-        } else {
-            throw new Error(`Unexpected response status: ${response.status}`);
-        }
-        
-    } catch (error) {
-        console.error('Upload error:', error);
-        throw new Error(`Failed to upload image: ${error.message}`);
+  try {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    const fileExtension = file.name.split('.').pop() || 'jpg';
+    const blobName = `garage_${timestamp}_${random}_${index}.${fileExtension}`;
+    const sasUrl = getBlobSasUrl(blobName);
+    const blob = new Blob([file], { type: file.type || 'image/jpeg' });
+    const response = await fetch(sasUrl, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': file.type || 'image/jpeg',
+        'x-ms-version': '2020-04-08',
+        'Content-Length': blob.size.toString()
+      },
+      body: blob
+    });
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error details');
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
+    if (response.status === 201) {
+      return `https://${AZURE_CONFIG.STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_CONFIG.CONTAINER_NAME}/${blobName}`;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+  } catch (error) {
+    throw new Error(`Failed to upload image: ${error.message}`);
+  }
 }
 
-
-
-    // ✅ Enhanced Cosmos DB upload with better error handling
 async function uploadToCosmosDB(document) {
-    try {
-        const cosmosUrl = `${AZURE_CONFIG.COSMOS_ENDPOINT}dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}/docs`;
-        const dateFormat = new Date().toUTCString();
-
-        // This must match the "resourceLink" part used in signature
-        const resourceLink = `dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}`;
-        
-        // Generate valid authorization token
-        const authToken = generateCosmosAuthToken(
-            'POST',
-            'docs',
-            resourceLink,
-            AZURE_CONFIG.COSMOS_KEY,
-            dateFormat
-        );
-
-        // Partition key — safe fallback
-        const partitionKeyValue = document.garageName || document.id || 'default';
-        const partitionKeyHeader = `["${partitionKeyValue}"]`;
-
-        // Add metadata
-        document._uploadMetadata = {
-            cosmosUploadTime: new Date().toISOString(),
-            version: '1.0',
-            source: 'web-form'
-        };
-
-        const response = await fetch(cosmosUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-ms-version': '2018-12-31',
-                'x-ms-date': dateFormat,
-                'x-ms-documentdb-partitionkey': partitionKeyHeader,
-                'Authorization': authToken
-            },
-            body: JSON.stringify(document)
-        });
-
-        if (response.status === 201) {
-            console.log('✅ Cosmos DB upload successful');
-            return true;
-        } else {
-            const errorText = await response.text();
-            console.error('❌ Cosmos DB upload failed:', response.status, errorText);
-            throw new Error(`Cosmos DB: ${response.status} - ${errorText}`);
-        }
-    } catch (error) {
-        console.error('Cosmos DB upload error:', error);
-        throw error;
-    }    try {
-        const cosmosUrl = `${AZURE_CONFIG.COSMOS_ENDPOINT}dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}/docs`;
-        const dateFormat = new Date().toUTCString();
-        const resourceLink = `dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}`;
-        const authToken = generateCosmosAuthToken("POST", "docs", resourceLink, AZURE_CONFIG.COSMOS_KEY, dateFormat);
-        const partitionKeyValue = document.garageName || document.id;
-        const partitionKeyHeader = partitionKeyValue ? `["${partitionKeyValue}"]` : '["default"]';
-
-        // Add metadata
-        document._uploadMetadata = {
-            cosmosUploadTime: new Date().toISOString(),
-            version: '1.0',
-            source: 'web-form'
-        };
-
-        const response = await fetch(cosmosUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-ms-version': '2018-12-31',
-                'x-ms-date': dateFormat,
-                'x-ms-documentdb-partitionkey': partitionKeyHeader,
-                'Authorization': authToken
-            },
-            body: JSON.stringify(document)
-        });
-
-        if (response.status === 201) {
-            console.log('✅ Cosmos DB upload successful');
-            return true;
-        } else {
-            const errorText = await response.text();
-            console.error('❌ Cosmos DB upload failed:', response.status, errorText);
-            throw new Error(`Cosmos DB: ${response.status} - ${errorText}`);
-        }
-    } catch (error) {
-        console.error('Cosmos DB upload error:', error);
-        throw error;
-    }
-}
-
-// ✅ Test SAS token and container access
-async function testAzureConnection() {
-    try {
-        const testBlobName = `test_connection_${Date.now()}.txt`;
-        const testSasUrl = getBlobSasUrl(testBlobName);
-        const testContent = "Test connection";
-        
-        const response = await fetch(testSasUrl, {
-            method: 'PUT',
-            headers: {
-                'x-ms-blob-type': 'BlockBlob',
-                'Content-Type': 'text/plain',
-                'x-ms-version': '2020-04-08'
-            },
-            body: testContent
-        });
-        
-        if (response.status === 201) {
-            console.log('✅ Azure Storage connection test: SUCCESS');
-            return true;
-        } else {
-            console.error('❌ Azure Storage connection test: FAILED', response.status);
-            return false;
-        }
-    } catch (error) {
-        console.error('❌ Azure Storage connection test: ERROR', error);
-        return false;
-    }
-}
-// ✅ Enhanced upload form data with better error handling
-async function uploadFormData() {
-    if (state.isUploading) return;
-    
-    state.isUploading = true;
-    const uploadDialog = $('#uploadDialog');
-    const uploadStatus = $('#uploadStatus');
-    const uploadProgress = $('#uploadProgress');
-    const uploadDetail = $('#uploadDetail');
-    
-    uploadDialog.showModal();
-    
-    try {
-        // Validate form first
-        const validation = validate();
-        if (!validation.ok) {
-            throw new Error('Form validation failed: ' + (validation.message || 'Please check all required fields'));
-        }
-
-        // Test Azure connection first
-        uploadStatus.textContent = 'Testing Azure connection...';
-        uploadDetail.textContent = 'Verifying storage account access';
-        
-        const connectionTest = await testAzureConnection();
-        if (!connectionTest) {
-            throw new Error('Cannot connect to Azure Storage. Please check your SAS token and container permissions.');
-        }
-
-        // Collect form data
-        const formData = collect();
-        uploadStatus.textContent = 'Uploading images to Azure Blob Storage...';
-        uploadDetail.textContent = `Preparing ${state.images.length} images`;
-
-        const imageUrls = [];
-        let successCount = 0;
-        let failCount = 0;
-
-        // Upload images one by one with progress
-        for (let i = 0; i < state.images.length; i++) {
-            try {
-                uploadDetail.textContent = `Uploading image ${i + 1}/${state.images.length}...`;
-                
-                const imageUrl = await uploadImageToBlob(state.images[i].file, i);
-                imageUrls.push({
-                    url: imageUrl,
-                    fileName: state.images[i].name,
-                    uploadedAt: new Date().toISOString(),
-                    size: state.images[i].file.size
-                });
-                
-                successCount++;
-                uploadProgress.style.width = `${((i + 1) / state.images.length) * 50}%`;
-                
-            } catch (error) {
-                console.error(`Failed to upload image ${i + 1}:`, error);
-                failCount++;
-                // Continue with other images even if one fails
-                imageUrls.push({
-                    url: null,
-                    fileName: state.images[i].name,
-                    error: error.message,
-                    uploadedAt: new Date().toISOString()
-                });
-            }
-        }
-
-        // Update form data with image URLs
-        formData.images = imageUrls;
-        formData.uploadSummary = {
-            total: state.images.length,
-            successful: successCount,
-            failed: failCount,
-            uploadedAt: new Date().toISOString()
-        };
-
-        uploadProgress.style.width = '75%';
-        uploadStatus.textContent = 'Uploading form data to Cosmos DB...';
-        uploadDetail.textContent = 'Saving form submission...';
-
-        // Upload to Cosmos DB
-        const cosmosResult = await uploadToCosmosDB(formData);
-        
-        if (cosmosResult) {
-            uploadProgress.style.width = '100%';
-            uploadStatus.textContent = 'Upload completed successfully!';
-            uploadDetail.textContent = `Images: ${successCount} successful, ${failCount} failed`;
-            
-            setTimeout(() => {
-                uploadDialog.close();
-                showSuccessDialog(formData);
-                state.isUploading = false;
-            }, 1500);
-        } else {
-            throw new Error('Failed to save data to Cosmos DB');
-        }
-
-    } catch (error) {
-        console.error('Upload process failed:', error);
-        uploadStatus.textContent = 'Upload failed';
-        uploadDetail.textContent = error.message;
-        uploadProgress.style.background = 'var(--bad)';
-        
-        setTimeout(() => {
-            uploadDialog.close();
-            toast(`Upload failed: ${error.message}`, 'error');
-            state.isUploading = false;
-        }, 3000);
-    }
-}
-
-
-    function showSuccessDialog(formData) {
-      const jsonDialog = $('#jsonDialog');
-      $('#jsonOut').textContent = JSON.stringify(formData, null, 2);
-      jsonDialog.showModal();
-    }
-
-    // Page navigation
-    const showPage = (p)=>{
-      state.page = p;
-      $('#page1').hidden = p!==1;
-      $('#page2').hidden = p!==2;
-      $('#page3').hidden = p!==3;
-      window.scrollTo({top: 0, behavior: 'smooth'});
+  try {
+    const cosmosUrl = `${AZURE_CONFIG.COSMOS_ENDPOINT}dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}/docs`;
+    const dateFormat = new Date().toUTCString();
+    const resourceLink = `dbs/${AZURE_CONFIG.DATABASE_NAME}/colls/${AZURE_CONFIG.COSMOS_CONTAINER}`;
+    const authToken = generateCosmosAuthToken(
+      'POST',
+      'docs',
+      resourceLink,
+      AZURE_CONFIG.COSMOS_KEY,
+      dateFormat
+    );
+    const partitionKeyValue = document.garageName || document.id || 'default';
+    const partitionKeyHeader = `["${partitionKeyValue}"]`;
+    document._uploadMetadata = {
+      cosmosUploadTime: new Date().toISOString(),
+      version: '1.0',
+      source: 'web-form'
     };
-
-    // FIXED: Yes/No chip component with proper data-id attribute
-    function chipYN(label, groupId){
-      const wrap = el('div', {className:'yn', role:'radiogroup'});
-      // CRITICAL FIX: Use dataset to properly set data-id attribute
-      wrap.dataset.id = groupId;
-      
-      const yes = el('div', {className:'chip ok', role:'radio', tabIndex:0}, '✓ Yes');
-      const no = el('div', {className:'chip bad', role:'radio', tabIndex:0}, '✗ No');
-      
-      // Store value on the chip element itself
-      yes.dataset.val = 'Yes';
-      no.dataset.val = 'No';
-      
-      [yes,no].forEach(c=>{
-        c.addEventListener('click', ()=>{
-          [...wrap.children].forEach(x=>{
-            x.classList.remove('active');
-            x.setAttribute('aria-checked', 'false');
-          });
-          c.classList.add('active');
-          c.setAttribute('aria-checked', 'true');
-          console.log(`Selected: ${groupId} = ${c.dataset.val}`);
-        });
-        c.addEventListener('keydown', (e)=>{
-          if(e.key==='Enter' || e.key===' '){ 
-            c.click(); 
-            e.preventDefault(); 
-          }
-        });
-      });
-      
-      wrap.append(yes,no);
-      return wrap;
-    }
-
-    // Question lists
-    const infraQuestions = [
-      'Paint Mixing Room Available',
-      'Paint Booth Available'
-    ];
-    
-    const toolsQuestions = [
-      'Dent Puller Available',
-      'Sander Set Available',
-      'Spray Gun Available',
-      'Polishing Machine Available',
-      "Tinker's Tool Kit Available",
-      'Fiber / Plastic Repair Kit Available',
-      'Dust Extraction Unit'
-    ];
-
-    const safetyOptions = [
-      'Safety Shoes','Gloves','Goggles','Mask','Coveralls','Ear Protection',
-      'Fire Extinguishers','First Aid','Training Conducted'
-    ];
-
-    // Render Yes/No questions
-    function addYNList(containerId, questions){
-      const cont = document.getElementById(containerId);
-      questions.forEach(q=>{
-        const row = el('div', {className:'question-row'},
-          el('div', {className:'question-label'}, '• ', q),
-          chipYN(q, q)
-        );
-        cont.append(row);
-      });
-    }
-
-    // Render safety checkboxes
-    function buildSafety(){
-      const cont = $('#safety_container');
-      safetyOptions.forEach(opt=>{
-        const id = 'safe_'+opt.replace(/[^a-z0-9]+/gi,'_').toLowerCase();
-        const label = el('label', {className:'checkbox-label', htmlFor:id});
-        const cb = el('input', {type:'checkbox', id});
-        label.append(cb, opt);
-        cont.append(label);
-      });
-    }
-
-    // Image handling
-    const fileInput = $('#fileInput');
-    $('#btnAddImage').addEventListener('click', ()=> fileInput.click());
-    
-    fileInput.addEventListener('change', async (e)=>{
-      const files = [...(e.target.files||[])];
-      if(!files.length) return;
-      
-      for (const f of files){
-        const url = URL.createObjectURL(f);
-        state.images.push({file:f, url, name:f.name});
-      }
-      renderImages();
-      toast(`${files.length} image(s) added. Total: ${state.images.length}`);
-      fileInput.value = '';
+    const response = await fetch(cosmosUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-ms-version': '2018-12-31',
+        'x-ms-date': dateFormat,
+        'x-ms-documentdb-partitionkey': partitionKeyHeader,
+        'Authorization': authToken
+      },
+      body: JSON.stringify(document)
     });
-
-    function renderImages(){
-      const list = $('#image_list');
-      const count = $('#image_count');
-      list.innerHTML = '';
-      count.textContent = state.images.length;
-      
-      state.images.forEach((img, i)=>{
-        const item = el('div', {className:'imgItem'},
-          el('img', {className:'thumb', src: img.url, alt: 'Image '+(i+1)}),
-          el('div', {className:'grow'},
-            el('div', {style:'font-weight:600'}, '📷 Image ', (i+1)),
-            el('div', {className:'muted', style:'font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap'},
-              img.name || 'Image')
-          ),
-          el('button', {className:'danger', onclick: ()=>{
-            URL.revokeObjectURL(img.url);
-            state.images.splice(i,1);
-            renderImages();
-            toast(`Image removed. Total: ${state.images.length}`);
-          }}, '✕')
-        );
-        list.append(item);
-      });
-    }
-
-    // Map functionality
-    let map, marker;
-    const mapDlg = $('#mapDialog');
-    const locHint = $('#loc_hint');
-
-    function ensureMap(start){
-      if(map) {
-        map.invalidateSize();
-        if(start) map.setView(start, 15);
-        return;
-      }
-      map = L.map('map',{zoomControl:true}).setView(start || [19.2969,73.0631], 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        maxZoom:19,
-        attribution:'© OpenStreetMap'
-      }).addTo(map);
-      
-      marker = L.marker(start || [19.2969,73.0631], {draggable:true}).addTo(map);
-      
-      marker.on('dragend', ()=>{
-        const p = marker.getLatLng();
-        state.location.lat = +p.lat.toFixed(6);
-        state.location.long = +p.lng.toFixed(6);
-        updateLocHint();
-      });
-      
-      map.on('click',(e)=>{
-        marker.setLatLng(e.latlng);
-        state.location.lat = +e.latlng.lat.toFixed(6);
-        state.location.long = +e.latlng.lng.toFixed(6);
-        updateLocHint();
-      });
-    }
-
-    function updateLocHint(){
-      if(state.location.lat!=null && state.location.long!=null){
-        locHint.innerHTML = `📍 <strong>Lat:</strong> ${state.location.lat.toFixed(6)}, <strong>Long:</strong> ${state.location.long.toFixed(6)}`;
-      }else{
-        locHint.textContent = '📍 Location: Not set';
-      }
-    }
-
-    $('#btnSelectLocation').addEventListener('click', ()=>{
-      const start = (state.location.lat!=null && state.location.long!=null)
-        ? [state.location.lat, state.location.long]
-        : [19.2969, 73.0631];
-      mapDlg.showModal();
-      setTimeout(()=> ensureMap(start), 50);
-    });
-
-    $('#closeMap').addEventListener('click', ()=> mapDlg.close());
-
-    $('#confirmMap').addEventListener('click', ()=>{
-      if(!state.location.lat || !state.location.long){
-        toast('⚠️ Tap map to set a marker first');
-        return;
-      }
-      mapDlg.close();
-      toast('✓ Location selected successfully');
-    });
-
-    $('#useCurrent').addEventListener('click', ()=>{
-      if(!navigator.geolocation){ 
-        toast('⚠️ Geolocation not supported'); 
-        return; 
-      }
-      
-      toast('📍 Getting your location...');
-      navigator.geolocation.getCurrentPosition(pos=>{
-        const {latitude, longitude} = pos.coords;
-        state.location.lat = +latitude.toFixed(6);
-        state.location.long = +longitude.toFixed(6);
-        ensureMap([latitude, longitude]);
-        marker.setLatLng([latitude, longitude]);
-        map.setView([latitude, longitude], 15);
-        updateLocHint();
-        toast('✓ Location captured successfully');
-        
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-          .then(r => r.json())
-          .then(data => {
-            if(data && data.display_name){
-              state.location.address = data.display_name;
-              $('#address').value = data.display_name;
-            }
-          })
-          .catch(()=>{});
-      }, err=>{
-        toast('⚠️ Unable to get location. Please select manually.');
-      }, {enableHighAccuracy:true, timeout:10000});
-    });
-
-    // FIXED: Validation function with proper attribute selector
-    function validatePage(pageNumber) {
-      const missing = [];
-      const missingYN = [];
-      
-      // Helper to check Yes/No questions - FIXED VERSION
-      const checkYN = (question) => {
-        const wrap = document.querySelector(`.yn[data-id="${question}"]`);
-        if (!wrap) {
-          console.error(`Group not found for: ${question}`);
-          return false;
-        }
-        
-        const hasActive = wrap.querySelector('.chip.active');
-        console.log(`Checking "${question}":`, hasActive ? 'ANSWERED' : 'MISSING');
-        return !!hasActive;
-      };
-      
-      // Helper to highlight missing Yes/No groups
-      const highlightMissing = (questions) => {
-        questions.forEach(q => {
-          const wrap = document.querySelector(`.yn[data-id="${q}"]`);
-          if (wrap) {
-            wrap.style.outline = '2px solid var(--bad)';
-            wrap.style.outlineOffset = '4px';
-            wrap.style.borderRadius = '12px';
-            setTimeout(() => {
-              wrap.style.outline = '';
-              wrap.style.outlineOffset = '';
-            }, 2000);
-          }
-        });
-      };
-      
-      // PAGE 1 VALIDATION
-      if (pageNumber === 1) {
-        // Text fields
-        if (!$('#garage_name').value.trim()) missing.push('Garage Name');
-        if (!$('#body_shop_bays').value) missing.push('Body Shop Bays');
-        if (!$('#flooring_type').value) missing.push('Flooring Type');
-        
-        // Yes/No questions
-        infraQuestions.forEach(q => {
-          if (!checkYN(q)) missingYN.push(q);
-        });
-        
-        // Images
-        if (state.images.length < REQUIRED_MIN_IMAGES) {
-          toast(`⚠️ Please add at least ${REQUIRED_MIN_IMAGES} photos`, 'error');
-          return false;
-        }
-        
-        // Location
-        if (state.location.lat == null || state.location.long == null) {
-          toast('⚠️ Please select location on the map', 'error');
-          return false;
-        }
-      }
-      
-      // PAGE 2 VALIDATION
-      if (pageNumber === 2) {
-        // Dropdown fields
-        const fields = [
-          'welding_equipment', 'cutting_equipment', 'windshield_remover',
-          'paint_material', 'paint_booth_type', 'car_o_liner',
-          'employment_type', 'pickup_drop_distance', 'technician_certification'
-        ];
-        
-        fields.forEach(id => {
-          if (!$(`#${id}`).value) {
-            missing.push(id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
-          }
-        });
-        
-        // Tools Yes/No questions
-        toolsQuestions.forEach(q => {
-          if (!checkYN(q)) missingYN.push(q);
-        });
-        
-        // Customer Lounge
-        if (!checkYN('Customer Lounge Available')) {
-          missingYN.push('Customer Lounge Available');
-        }
-      }
-      
-      // PAGE 3 VALIDATION
-      if (pageNumber === 3) {
-        const rp = $('#repair_percent').value;
-        const acs = $('#acs').value;
-        const dr = $('#discount_rate').value;
-        
-        if (!rp || isNaN(rp)) missing.push('Repair Percentage');
-        if (!acs || isNaN(acs)) missing.push('ACS');
-        if (!dr || isNaN(dr)) missing.push('Discount Rate');
-        if (!$('#address').value.trim()) missing.push('Address');
-      }
-      
-      // Show errors if any
-      if (missing.length > 0 || missingYN.length > 0) {
-        let errorMsg = '⚠️ Please complete the following:\n\n';
-        
-        if (missing.length > 0) {
-          errorMsg += 'Fields:\n• ' + missing.join('\n• ') + '\n\n';
-        }
-        
-        if (missingYN.length > 0) {
-          errorMsg += 'Yes/No Questions:\n• ' + missingYN.join('\n• ');
-          highlightMissing(missingYN);
-        }
-        
-        alert(errorMsg);
-        return false;
-      }
-      
+    if (response.status === 201) {
       return true;
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Cosmos DB: ${response.status} - ${errorText}`);
     }
+  } catch (error) {
+    throw error;
+  }
+}
 
-    // Quick validation for submission
-    function validate() {
-      return {ok: validatePage(state.page)};
+async function testAzureConnection() {
+  try {
+    const testBlobName = `test_connection_${Date.now()}.txt`;
+    const testSasUrl = getBlobSasUrl(testBlobName);
+    const testContent = "Test connection";
+    const response = await fetch(testSasUrl, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': 'text/plain',
+        'x-ms-version': '2020-04-08'
+      },
+      body: testContent
+    });
+    if (response.status === 201) {
+      return true;
+    } else {
+      return false;
     }
+  } catch (error) {
+    return false;
+  }
+}
 
-    // Update navigation to use page validation
-    $('#next1').addEventListener('click', () => {
-      if (validatePage(1)) showPage(2);
-    });
-
-    $('#next2').addEventListener('click', () => {
-      if (validatePage(2)) showPage(3);
-    });
-
-    $('#submit').addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (validatePage(3)) {
-        await uploadFormData();
+async function uploadFormData() {
+  if (state.isUploading) return;
+  state.isUploading = true;
+  const uploadDialog = $('#uploadDialog');
+  const uploadStatus = $('#uploadStatus');
+  const uploadProgress = $('#uploadProgress');
+  const uploadDetail = $('#uploadDetail');
+  uploadDialog.showModal();
+  try {
+    const validation = validate();
+    if (!validation.ok) {
+      throw new Error('Form validation failed: ' + (validation.message || 'Please check all required fields'));
+    }
+    uploadStatus.textContent = 'Testing Azure connection...';
+    uploadDetail.textContent = 'Verifying storage account access';
+    const connectionTest = await testAzureConnection();
+    if (!connectionTest) {
+      throw new Error('Cannot connect to Azure Storage. Please check your SAS token and container permissions.');
+    }
+    const formData = collect();
+    uploadStatus.textContent = 'Uploading images to Azure Blob Storage...';
+    uploadDetail.textContent = `Preparing ${state.images.length} images`;
+    const imageUrls = [];
+    let successCount = 0;
+    let failCount = 0;
+    for (let i = 0; i < state.images.length; i++) {
+      try {
+        uploadDetail.textContent = `Uploading image ${i + 1}/${state.images.length}...`;
+        const imageUrl = await uploadImageToBlob(state.images[i].file, i);
+        imageUrls.push({
+          url: imageUrl,
+          fileName: state.images[i].name,
+          uploadedAt: new Date().toISOString(),
+          size: state.images[i].file.size
+        });
+        successCount++;
+        uploadProgress.style.width = `${((i + 1) / state.images.length) * 50}%`;
+      } catch (error) {
+        failCount++;
+        imageUrls.push({
+          url: null,
+          fileName: state.images[i].name,
+          error: error.message,
+          uploadedAt: new Date().toISOString()
+        });
       }
-    });
-
-    // Collect form data
-    function collect(){
-      const getYN = (q)=>{
-        const wrap = document.querySelector(`.yn[data-id="${q}"]`);
-        if (!wrap) {
-          console.error(`Radio group not found: ${q}`);
-          return 'Not answered';
-        }
-        
-        const chip = wrap.querySelector('.chip.active');
-        return chip ? chip.dataset.val : 'Not answered';
-      };
-      
-      const infra = {};
-      infraQuestions.forEach(q=> infra[q] = getYN(q));
-      
-      const tools = {};
-      toolsQuestions.forEach(q=> tools[q] = getYN(q));
-
-      const safety = [];
-      document.querySelectorAll('#safety_container input[type="checkbox"]').forEach(cb=>{
-        if(cb.checked){
-          const label = cb.parentElement.textContent.trim();
-          safety.push(label);
-        }
-      });
-
-      const formData = {
-        id: crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now(),
-        submittedAt: new Date().toISOString(),
-        garageName: $('#garage_name').value.trim(),
-        infrastructureDetails: infra,
-        toolsEquipmentDetails: tools,
-
-        bodyShopBays: $('#body_shop_bays').value.trim(),
-        flooringType: $('#flooring_type').value.trim(),
-
-        weldingEquipment: $('#welding_equipment').value.trim(),
-        cuttingEquipment: $('#cutting_equipment').value.trim(),
-        paintMaterial: $('#paint_material').value.trim(),
-        paintBoothType: $('#paint_booth_type').value.trim(),
-        carOLiner: $('#car_o_liner').value.trim(),
-        employmentType: $('#employment_type').value.trim(),
-        windshieldRemover: $('#windshield_remover').value.trim(),
-
-        safetyEquipment: safety,
-
-        customerLoungeAvailable: getYN('Customer Lounge Available'),
-        pickupDropDistance: $('#pickup_drop_distance').value.trim(),
-        technicianCertification: $('#technician_certification').value.trim(),
-
-        repairPercent: $('#repair_percent').value.trim(),
-        acs: $('#acs').value.trim(),
-        discountRate: $('#discount_rate').value.trim(),
-
-        location: {
-          lat: state.location.lat,
-          long: state.location.long,
-          address: $('#address').value.trim()
-        },
-        images: []
-      };
-      return formData;
     }
-
-    function clearForm() {
-      // Clear all inputs
-      document.querySelectorAll('input[type="text"], input[type="number"], textarea, select').forEach(el => {
-        el.value = '';
-      });
-      
-      // Clear radio buttons
-      document.querySelectorAll('.chip.active').forEach(chip => {
-        chip.classList.remove('active');
-        chip.setAttribute('aria-checked', 'false');
-      });
-      
-      // Clear checkboxes
-      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-      });
-      
-      // Clear images
-      state.images.forEach(img => URL.revokeObjectURL(img.url));
-      state.images = [];
-      renderImages();
-      
-      // Clear location
-      state.location = {lat: null, long: null, address: ""};
-      updateLocHint();
-      
-      // Reset to page 1
-      showPage(1);
-      
-      toast('Form cleared. Ready for new entry.', 'success');
+    formData.images = imageUrls;
+    formData.uploadSummary = {
+      total: state.images.length,
+      successful: successCount,
+      failed: failCount,
+      uploadedAt: new Date().toISOString()
+    };
+    uploadProgress.style.width = '75%';
+    uploadStatus.textContent = 'Uploading form data to Cosmos DB...';
+    uploadDetail.textContent = 'Saving form submission...';
+    const cosmosResult = await uploadToCosmosDB(formData);
+    if (cosmosResult) {
+      uploadProgress.style.width = '100%';
+      uploadStatus.textContent = 'Upload completed successfully!';
+      uploadDetail.textContent = `Images: ${successCount} successful, ${failCount} failed`;
+      setTimeout(() => {
+        uploadDialog.close();
+        showSuccessDialog(formData);
+        state.isUploading = false;
+      }, 1500);
+    } else {
+      throw new Error('Failed to save data to Cosmos DB');
     }
+  } catch (error) {
+    uploadStatus.textContent = 'Upload failed';
+    uploadDetail.textContent = error.message;
+    uploadProgress.style.background = 'var(--bad)';
+    setTimeout(() => {
+      uploadDialog.close();
+      toast(`Upload failed: ${error.message}`, 'error');
+      state.isUploading = false;
+    }, 3000);
+  }
+}
 
-    // Navigation
-    $('#prev2').addEventListener('click', ()=> showPage(1));
-    $('#prev3').addEventListener('click', ()=> showPage(2));
+function showSuccessDialog(formData) {
+  const jsonDialog = $('#jsonDialog');
+  $('#jsonOut').textContent = JSON.stringify(formData, null, 2);
+  jsonDialog.showModal();
+}
 
-    // Submit
-    $('#closeJson').addEventListener('click', ()=> $('#jsonDialog').close());
-    
-    $('#copyJson').addEventListener('click', async ()=>{
-      try{
-        await navigator.clipboard.writeText($('#jsonOut').textContent);
-        toast('✓ JSON copied to clipboard', 'success');
-      }catch{ 
-        toast('⚠️ Copy failed', 'error'); 
-      }
+const showPage = (p)=>{
+  state.page = p;
+  $('#page1').hidden = p!==1;
+  $('#page2').hidden = p!==2;
+  $('#page3').hidden = p!==3;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+};
+
+function chipYN(label, groupId){
+  const wrap = el('div', {className:'yn', role:'radiogroup'});
+  wrap.dataset.id = groupId;
+  const yes = el('div', {className:'chip ok', role:'radio', tabIndex:0}, '✓ Yes');
+  const no = el('div', {className:'chip bad', role:'radio', tabIndex:0}, '✗ No');
+  yes.dataset.val = 'Yes';
+  no.dataset.val = 'No';
+  [yes,no].forEach(c=>{
+    c.addEventListener('click', ()=>{
+      [...wrap.children].forEach(x=>{
+        x.classList.remove('active');
+        x.setAttribute('aria-checked', 'false');
+      });
+      c.classList.add('active');
+      c.setAttribute('aria-checked', 'true');
     });
-    
-    $('#newForm').addEventListener('click', () => {
-      $('#jsonDialog').close();
-      clearForm();
+    c.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){ c.click(); e.preventDefault(); }
     });
+  });
+  wrap.append(yes,no);
+  return wrap;
+}
 
-    // Initialize
-    addYNList('infrastructure_container', infraQuestions);
-    addYNList('tools_container', toolsQuestions);
-    $('#customer_lounge_radio').append(chipYN('Customer Lounge Available','Customer Lounge Available'));
-    buildSafety();
+const infraQuestions = [
+  'Paint Mixing Room Available',
+  'Paint Booth Available'
+];
+
+const toolsQuestions = [
+  'Dent Puller Available',
+  'Sander Set Available',
+  'Spray Gun Available',
+  'Polishing Machine Available',
+  "Tinker's Tool Kit Available",
+  'Fiber / Plastic Repair Kit Available',
+  'Dust Extraction Unit'
+];
+
+const safetyOptions = [
+  'Safety Shoes','Gloves','Goggles','Mask','Coveralls','Ear Protection',
+  'Fire Extinguishers','First Aid','Training Conducted'
+];
+
+function addYNList(containerId, questions){
+  const cont = document.getElementById(containerId);
+  questions.forEach(q=>{
+    const row = el('div', {className:'question-row'},
+      el('div', {className:'question-label'}, '• ', q),
+      chipYN(q, q)
+    );
+    cont.append(row);
+  });
+}
+
+function buildSafety(){
+  const cont = $('#safety_container');
+  safetyOptions.forEach(opt=>{
+    const id = 'safe_'+opt.replace(/[^a-z0-9]+/gi,'_').toLowerCase();
+    const label = el('label', {className:'checkbox-label', htmlFor:id});
+    const cb = el('input', {type:'checkbox', id});
+    label.append(cb, opt);
+    cont.append(label);
+  });
+}
+
+// Enhanced image upload functionality
+const cameraInput = $('#cameraInput');
+const galleryInput = $('#galleryInput');
+
+$('#btnTakePhoto').addEventListener('click', ()=> {
+  cameraInput.click();
+});
+
+$('#btnChooseFromGallery').addEventListener('click', ()=> {
+  galleryInput.click();
+});
+
+function handleFileSelection(files) {
+  if(!files.length) return;
+  for (const f of files){
+    const url = URL.createObjectURL(f);
+    state.images.push({file:f, url, name:f.name});
+  }
+  renderImages();
+  toast(`${files.length} image(s) added. Total: ${state.images.length}`);
+}
+
+cameraInput.addEventListener('change', (e)=> {
+  handleFileSelection([...(e.target.files||[])]);
+  cameraInput.value = '';
+});
+
+galleryInput.addEventListener('change', (e)=> {
+  handleFileSelection([...(e.target.files||[])]);
+  galleryInput.value = '';
+});
+
+function renderImages(){
+  const list = $('#image_list');
+  const count = $('#image_count');
+  list.innerHTML = '';
+  count.textContent = state.images.length;
+  state.images.forEach((img, i)=>{
+    const item = el('div', {className:'imgItem'},
+      el('img', {className:'thumb', src: img.url, alt: 'Image '+(i+1)}),
+      el('div', {className:'grow'},
+        el('div', {style:'font-weight:600'}, '📷 Image ', (i+1)),
+        el('div', {className:'muted', style:'font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap'},
+          img.name || 'Image')
+      ),
+      el('button', {className:'danger', onclick: ()=>{
+        URL.revokeObjectURL(img.url);
+        state.images.splice(i,1);
+        renderImages();
+        toast(`Image removed. Total: ${state.images.length}`);
+      }}, '✕')
+    );
+    list.append(item);
+  });
+}
+
+let map, marker;
+const mapDlg = $('#mapDialog');
+const locHint = $('#loc_hint');
+
+function ensureMap(start){
+  if(map) {
+    map.invalidateSize();
+    if(start) map.setView(start, 15);
+    return;
+  }
+  map = L.map('map',{zoomControl:true}).setView(start || [19.2969,73.0631], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+  marker = L.marker(start || [19.2969,73.0631], {draggable:true}).addTo(map);
+  marker.on('dragend', ()=>{
+    const p = marker.getLatLng();
+    state.location.lat = +p.lat.toFixed(6);
+    state.location.long = +p.lng.toFixed(6);
     updateLocHint();
+  });
+  map.on('click',(e)=>{
+    marker.setLatLng(e.latlng);
+    state.location.lat = +e.latlng.lat.toFixed(6);
+    state.location.long = +e.latlng.lng.toFixed(6);
+    updateLocHint();
+  });
+}
+
+function updateLocHint(){
+  if(state.location.lat!=null && state.location.long!=null){
+    locHint.innerHTML = `📍 <strong>Lat:</strong> ${state.location.lat.toFixed(6)}, <strong>Long:</strong> ${state.location.long.toFixed(6)}`;
+  }else{
+    locHint.textContent = '📍 Location: Not set';
+  }
+}
+
+$('#btnSelectLocation').addEventListener('click', ()=>{
+  const start = (state.location.lat!=null && state.location.long!=null)
+    ? [state.location.lat, state.location.long]
+    : [19.2969, 73.0631];
+  mapDlg.showModal();
+  setTimeout(()=> ensureMap(start), 50);
+});
+
+$('#closeMap').addEventListener('click', ()=> mapDlg.close());
+
+$('#confirmMap').addEventListener('click', ()=>{
+  if(!state.location.lat || !state.location.long){
+    toast('⚠️ Tap map to set a marker first');
+    return;
+  }
+  mapDlg.close();
+  toast('✓ Location selected successfully');
+});
+
+$('#useCurrent').addEventListener('click', ()=>{
+  if(!navigator.geolocation){
+    toast('⚠️ Geolocation not supported');
+    return;
+  }
+  toast('📍 Getting your location...');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude, longitude} = pos.coords;
+    state.location.lat = +latitude.toFixed(6);
+    state.location.long = +longitude.toFixed(6);
+    ensureMap([latitude, longitude]);
+    marker.setLatLng([latitude, longitude]);
+    map.setView([latitude, longitude], 15);
+    updateLocHint();
+    toast('✓ Location captured successfully');
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+      .then(r => r.json())
+      .then(data => {
+        if(data && data.display_name){
+          state.location.address = data.display_name;
+          $('#address').value = data.display_name;
+        }
+      })
+      .catch(()=>{});
+  }, ()=>{
+    toast('⚠️ Unable to get location. Please select manually.');
+  }, {enableHighAccuracy:true, timeout:10000});
+});
+
+function validatePage(pageNumber) {
+  const missing = [];
+  const missingYN = [];
+  const checkYN = (question) => {
+    const wrap = document.querySelector(`.yn[data-id="${question}"]`);
+    if (!wrap) return false;
+    const hasActive = wrap.querySelector('.chip.active');
+    return !!hasActive;
+  };
+  const highlightMissing = (questions) => {
+    questions.forEach(q => {
+      const wrap = document.querySelector(`.yn[data-id="${q}"]`);
+      if (wrap) {
+        wrap.style.outline = '2px solid var(--bad)';
+        wrap.style.outlineOffset = '4px';
+        wrap.style.borderRadius = '12px';
+        setTimeout(() => {
+          wrap.style.outline = '';
+          wrap.style.outlineOffset = '';
+        }, 2000);
+      }
+    });
+  };
+  if (pageNumber === 1) {
+    if (!$('#garage_name').value.trim()) missing.push('Garage Name');
+    if (!$('#body_shop_bays').value) missing.push('Body Shop Bays');
+    if (!$('#flooring_type').value) missing.push('Flooring Type');
+    infraQuestions.forEach(q => {
+      if (!checkYN(q)) missingYN.push(q);
+    });
+    if (state.images.length < REQUIRED_MIN_IMAGES) {
+      toast(`⚠️ Please add at least ${REQUIRED_MIN_IMAGES} photos`, 'error');
+      return false;
+    }
+    if (state.location.lat == null || state.location.long == null) {
+      toast('⚠️ Please select location on the map', 'error');
+      return false;
+    }
+  }
+  if (pageNumber === 2) {
+    const fields = [
+      'welding_equipment', 'cutting_equipment', 'windshield_remover',
+      'paint_material', 'paint_booth_type', 'car_o_liner',
+      'employment_type', 'pickup_drop_distance', 'technician_certification'
+    ];
+    fields.forEach(id => {
+      if (!$(`#${id}`).value) {
+        missing.push(id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+      }
+    });
+    toolsQuestions.forEach(q => {
+      if (!checkYN(q)) missingYN.push(q);
+    });
+    if (!checkYN('Customer Lounge Available')) {
+      missingYN.push('Customer Lounge Available');
+    }
+  }
+  if (pageNumber === 3) {
+    const rp = $('#repair_percent').value;
+    const acs = $('#acs').value;
+    const dr = $('#discount_rate').value;
+    if (!rp || isNaN(rp)) missing.push('Repair Percentage');
+    if (!acs || isNaN(acs)) missing.push('ACS');
+    if (!dr || isNaN(dr)) missing.push('Discount Rate');
+    if (!$('#address').value.trim()) missing.push('Address');
+  }
+  if (missing.length > 0 || missingYN.length > 0) {
+    let errorMsg = '⚠️ Please complete the following:\n\n';
+    if (missing.length > 0) {
+      errorMsg += 'Fields:\n• ' + missing.join('\n• ') + '\n\n';
+    }
+    if (missingYN.length > 0) {
+      errorMsg += 'Yes/No Questions:\n• ' + missingYN.join('\n• ');
+      highlightMissing(missingYN);
+    }
+    alert(errorMsg);
+    return false;
+  }
+  return true;
+}
+
+function validate() {
+  return {ok: validatePage(state.page)};
+}
+
+$('#next1').addEventListener('click', () => {
+  if (validatePage(1)) showPage(2);
+});
+
+$('#next2').addEventListener('click', () => {
+  if (validatePage(2)) showPage(3);
+});
+
+$('#submit').addEventListener('click', async (e) => {
+  e.preventDefault();
+  if (validatePage(3)) {
+    await uploadFormData();
+  }
+});
+
+function collect(){
+  const getYN = (q)=>{
+    const wrap = document.querySelector(`.yn[data-id="${q}"]`);
+    if (!wrap) return 'Not answered';
+    const chip = wrap.querySelector('.chip.active');
+    return chip ? chip.dataset.val : 'Not answered';
+  };
+  
+  const getRadioValue = (name) => {
+    const selected = document.querySelector(`input[name="${name}"]:checked`);
+    return selected ? selected.value : 'Not answered';
+  };
+
+  const getCheckboxValues = (name) => {
+    const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+    return Array.from(checkboxes).map(cb => cb.parentElement.textContent.trim());
+  };
+
+  const infra = {};
+  infraQuestions.forEach(q=> infra[q] = getYN(q));
+  const tools = {};
+  toolsQuestions.forEach(q=> tools[q] = getYN(q));
+  const safety = [];
+  document.querySelectorAll('#safety_container input[type="checkbox"]').forEach(cb=>{
+    if(cb.checked){
+      const label = cb.parentElement.textContent.trim();
+      safety.push(label);
+    }
+  });
+
+  const formData = {
+    id: crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now(),
+    submittedAt: new Date().toISOString(),
+    garageName: $('#garage_name').value.trim(),
+    infrastructureDetails: infra,
+    toolsEquipmentDetails: tools,
     
-    console.log('✓ Garage QnA Form initialized - YES/NO validation FIXED');
+    // New questionnaires
+    paintingConsumable: getCheckboxValues('painting_consumable'),
+    acGasMachine: getRadioValue('ac_gas_machine'),
+    washingEquipment: getRadioValue('washing_equipment'),
+    cameraSettingChallenge: $('#camera_challenge').value.trim(),
+    
+    bodyShopBays: $('#body_shop_bays').value.trim(),
+    flooringType: $('#flooring_type').value.trim(),
+    weldingEquipment: $('#welding_equipment').value.trim(),
+    cuttingEquipment: $('#cutting_equipment').value.trim(),
+    paintMaterial: $('#paint_material').value.trim(),
+    paintBoothType: $('#paint_booth_type').value.trim(),
+    carOLiner: $('#car_o_liner').value.trim(),
+    employmentType: $('#employment_type').value.trim(),
+    windshieldRemover: $('#windshield_remover').value.trim(),
+    safetyEquipment: safety,
+    customerLoungeAvailable: getYN('Customer Lounge Available'),
+    pickupDropDistance: $('#pickup_drop_distance').value.trim(),
+    technicianCertification: $('#technician_certification').value.trim(),
+    repairPercent: $('#repair_percent').value.trim(),
+    acs: $('#acs').value.trim(),
+    discountRate: $('#discount_rate').value.trim(),
+    location: {
+      lat: state.location.lat,
+      long: state.location.long,
+      address: $('#address').value.trim()
+    },
+    images: []
+  };
+  return formData;
+}
+
+function clearForm() {
+  document.querySelectorAll('input[type="text"], input[type="number"], textarea, select').forEach(el => {
+    el.value = '';
+  });
+  document.querySelectorAll('.chip.active').forEach(chip => {
+    chip.classList.remove('active');
+    chip.setAttribute('aria-checked', 'false');
+  });
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    radio.checked = false;
+  });
+  state.images.forEach(img => URL.revokeObjectURL(img.url));
+  state.images = [];
+  renderImages();
+  state.location = {lat: null, long: null, address: ""};
+  updateLocHint();
+  showPage(1);
+  toast('Form cleared. Ready for new entry.', 'success');
+}
+
+$('#prev2').addEventListener('click', ()=> showPage(1));
+$('#prev3').addEventListener('click', ()=> showPage(2));
+
+$('#closeJson').addEventListener('click', ()=> $('#jsonDialog').close());
+
+$('#copyJson').addEventListener('click', async ()=>{
+  try{
+    await navigator.clipboard.writeText($('#jsonOut').textContent);
+    toast('✓ JSON copied to clipboard', 'success');
+  }catch{
+    toast('⚠️ Copy failed', 'error');
+  }
+});
+
+$('#newForm').addEventListener('click', () => {
+  $('#jsonDialog').close();
+  clearForm();
+});
+
+addYNList('infrastructure_container', infraQuestions);
+addYNList('tools_container', toolsQuestions);
+$('#customer_lounge_radio').append(chipYN('Customer Lounge Available','Customer Lounge Available'));
+buildSafety();
+updateLocHint();
   </script>
 </body>
 </html>
